@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: preptrack
+  datasource:
+    url: jdbc:postgresql://localhost:5432/preptrack
+    username: postgres
+    password: Suryansh@1904
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
