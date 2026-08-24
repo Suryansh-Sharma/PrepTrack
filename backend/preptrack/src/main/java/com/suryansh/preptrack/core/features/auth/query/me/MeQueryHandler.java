@@ -14,7 +14,7 @@ public class MeQueryHandler {
 
     public MeResponseDto handle() {
         AppUser user = currentUserService.getUser();
-        return new MeResponseDto(user.getId(),user.getEmail(),user.getDisplayName(),user.getTimezone(),user.getEmailVerifiedAt(),user.getPlan(),
-                user.getStatus(),user.getDeletedAt(), user.getFailedLoginAttempts(), user.getLockedUntil(),user.getCreatedAt(),user.getUpdatedAt());
+        return new MeResponseDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getTimezone(), user.getEmailVerifiedAt(), user.getPlan(),
+                user.getStatus(), user.getDeletedAt(), user.getFailedLoginAttempts(), user.getLockedUntil(), user.getCreatedAt(), user.getUpdatedAt());
     }
 }

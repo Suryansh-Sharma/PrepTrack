@@ -15,8 +15,9 @@ public class SessionQueryHandler {
     private static final Logger logger = LoggerFactory.getLogger(SessionQueryHandler.class);
     private final CurrentUserService currentUserService;
     private final RefreshTokenRepository refreshTokenRepository;
+
     public List<SessionInfoDto> getAllSession() {
-        try{
+        try {
             Integer userId = currentUserService.getUserId();
             return refreshTokenRepository.findByUserId(userId)
                     .stream()
@@ -29,7 +30,7 @@ public class SessionQueryHandler {
                             e.getIpAddress()
                     ))
                     .toList();
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
         }

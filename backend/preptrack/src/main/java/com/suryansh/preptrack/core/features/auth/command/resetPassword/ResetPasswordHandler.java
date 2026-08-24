@@ -7,10 +7,12 @@ import com.suryansh.preptrack.core.features.auth.domain.PasswordResetToken;
 import com.suryansh.preptrack.core.features.auth.domain.repository.PasswordHistoryRepository;
 import com.suryansh.preptrack.core.features.auth.domain.repository.PasswordResetTokenRepository;
 import com.suryansh.preptrack.core.features.auth.domain.repository.RefreshTokenRepository;
+import com.suryansh.preptrack.core.features.auth.event.PasswordResetSuccessEvent;
 import com.suryansh.preptrack.core.security.TokenService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +27,15 @@ public class ResetPasswordHandler {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordHistoryRepository passwordHistoryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ResetPasswordHandler(TokenService tokenService, PasswordResetTokenRepository passwordResetTokenRepository, PasswordEncoder passwordEncoder, RefreshTokenRepository refreshTokenRepository, PasswordHistoryRepository passwordHistoryRepository) {
+    public ResetPasswordHandler(TokenService tokenService, PasswordResetTokenRepository passwordResetTokenRepository, PasswordEncoder passwordEncoder, RefreshTokenRepository refreshTokenRepository, PasswordHistoryRepository passwordHistoryRepository, ApplicationEventPublisher eventPublisher) {
         this.tokenService = tokenService;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public void handle(ResetPasswordCommand command) {
@@ -60,6 +64,7 @@ public class ResetPasswordHandler {
             refreshTokenRepository.revokeAllByUserId(user.getId());
 
             logger.info("Password reset successfully for userId={}", user.getId());
+            eventPublisher.publishEvent(new PasswordResetSuccessEvent(user.getEmail(), user.getDisplayName()));
         } catch (InvalidCredentialsException e) {
             logger.warn("Password reset failed: {}", e.getMessage());
             throw e;

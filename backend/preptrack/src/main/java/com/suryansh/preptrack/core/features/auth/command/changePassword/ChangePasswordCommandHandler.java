@@ -5,10 +5,12 @@ import com.suryansh.preptrack.core.features.auth.domain.AppUser;
 import com.suryansh.preptrack.core.features.auth.domain.PasswordHistory;
 import com.suryansh.preptrack.core.features.auth.domain.repository.PasswordHistoryRepository;
 import com.suryansh.preptrack.core.features.auth.domain.repository.RefreshTokenRepository;
+import com.suryansh.preptrack.core.features.auth.event.PasswordChangedEvent;
 import com.suryansh.preptrack.core.security.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ public class ChangePasswordCommandHandler {
     private final PasswordEncoder passwordEncoder;
     private final PasswordHistoryRepository passwordHistoryRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void handle(ChangePasswordCommand command) {
         try {
@@ -42,6 +45,7 @@ public class ChangePasswordCommandHandler {
             refreshTokenRepository.revokeAllByUserId(user.getId());
 
             log.info("Password changed successfully for userId={}", user.getId());
+            eventPublisher.publishEvent(new PasswordChangedEvent(user.getEmail(), user.getDisplayName()));
         } catch (InvalidCredentialsException e) {
             log.warn("Password change failed for authenticated user: {}", e.getMessage());
             throw e;

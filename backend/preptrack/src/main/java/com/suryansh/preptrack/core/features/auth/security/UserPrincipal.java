@@ -1,21 +1,14 @@
 package com.suryansh.preptrack.core.features.auth.security;
 
 import com.suryansh.preptrack.core.features.auth.domain.AppUser;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
-@RequiredArgsConstructor
-public class UserPrincipal implements UserDetails {
-
-    private final AppUser user;
-
-    public AppUser getUser() {
-        return user;
-    }
+public record UserPrincipal(AppUser user) implements UserDetails {
 
     public Integer getId() {
         return user.getId();
@@ -41,19 +34,19 @@ public class UserPrincipal implements UserDetails {
         return user.getPlan().toString();
     }
 
-    public java.time.Instant getEmailVerifiedAt() {
+    public Instant getEmailVerifiedAt() {
         return user.getEmailVerifiedAt();
     }
 
-    public java.time.Instant getDeletedAt() {
+    public Instant getDeletedAt() {
         return user.getDeletedAt();
     }
 
-    public java.time.Instant getCreatedAt() {
+    public Instant getCreatedAt() {
         return user.getCreatedAt();
     }
 
-    public java.time.Instant getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return user.getUpdatedAt();
     }
 

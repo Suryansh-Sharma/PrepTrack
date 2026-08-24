@@ -3,10 +3,12 @@ package com.suryansh.preptrack.core.features.auth.command.verifyAccount;
 import com.suryansh.preptrack.core.exception.InvalidCredentialsException;
 import com.suryansh.preptrack.core.features.auth.domain.AppUser;
 import com.suryansh.preptrack.core.features.auth.domain.repository.EmailVerificationRepository;
+import com.suryansh.preptrack.core.features.auth.event.AccountVerifiedEvent;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -16,9 +18,11 @@ import java.time.Instant;
 public class VerifyAccountCommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(VerifyAccountCommandHandler.class);
     private final EmailVerificationRepository emailVerificationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public VerifyAccountCommandHandler(EmailVerificationRepository emailVerificationRepository) {
+    public VerifyAccountCommandHandler(EmailVerificationRepository emailVerificationRepository, ApplicationEventPublisher eventPublisher) {
         this.emailVerificationRepository = emailVerificationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public void handle(@Valid VerifyAccountCommand command) {
@@ -46,6 +50,7 @@ public class VerifyAccountCommandHandler {
             emailToken.setUsedAt(now);
             emailVerificationRepository.save(emailToken);
             logger.info("Email verified successfully for userId={}", user.getId());
+            eventPublisher.publishEvent(new AccountVerifiedEvent(user.getEmail(), user.getDisplayName()));
         } catch (InvalidCredentialsException e) {
             logger.warn("Email verification failed: {}", e.getMessage());
             throw e;

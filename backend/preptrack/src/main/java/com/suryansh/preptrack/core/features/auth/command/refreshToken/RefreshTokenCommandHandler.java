@@ -20,12 +20,12 @@ import java.util.UUID;
 @Service
 @Transactional
 public class RefreshTokenCommandHandler {
-    @Value("${security.jwt.expiration-time}")
-    private long accessTokenExpiration;
     private final RefreshTokenRepository refreshTokenRepository;
     private final long refreshTokenDays;
     private final JwtService jwtService;
     private final CurrentUserService currentUserService;
+    @Value("${security.jwt.expiration-time}")
+    private long accessTokenExpiration;
 
     public RefreshTokenCommandHandler(RefreshTokenRepository refreshTokenRepository, @Value("${security.jwt.refresh-token-day}") long refreshTokenDays, JwtService jwtService, CurrentUserService currentUserService) {
         this.refreshTokenRepository = refreshTokenRepository;
@@ -75,7 +75,7 @@ public class RefreshTokenCommandHandler {
 
         UserPrincipal principal = new UserPrincipal(user);
         String accessToken = jwtService.generateToken(principal);
-        return new LoginResponse.AuthenticationInfo(accessToken,"Bearer",accessTokenExpiration,command.refreshToken(),refreshToken.getExpiresAt(),now,expiresAt);
+        return new LoginResponse.AuthenticationInfo(accessToken, "Bearer", accessTokenExpiration, command.refreshToken(), refreshToken.getExpiresAt(), now, expiresAt);
 
     }
 
