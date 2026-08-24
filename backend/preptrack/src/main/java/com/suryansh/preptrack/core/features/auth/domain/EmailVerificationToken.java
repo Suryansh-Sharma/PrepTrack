@@ -20,6 +20,6 @@ public class EmailVerificationToken {
     private Instant usedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false,foreignKey = @ForeignKey(name = "fk_email_verification_token_user"))
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_email_verification_token_user"))
     private AppUser user;
 }

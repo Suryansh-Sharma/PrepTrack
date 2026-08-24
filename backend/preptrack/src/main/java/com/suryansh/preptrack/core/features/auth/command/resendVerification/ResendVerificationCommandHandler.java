@@ -4,9 +4,11 @@ import com.suryansh.preptrack.core.exception.TooManyRequestsException;
 import com.suryansh.preptrack.core.features.auth.domain.EmailVerificationToken;
 import com.suryansh.preptrack.core.features.auth.domain.repository.AppUserRepository;
 import com.suryansh.preptrack.core.features.auth.domain.repository.EmailVerificationRepository;
+import com.suryansh.preptrack.core.features.auth.event.UserRegisteredEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -17,13 +19,15 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 public class ResendVerificationCommandHandler {
-    @Value("${resend-cooldown-second}")
-    private long Resend_Cooldown_Second;
-    @Value("${security.jwt.email-verification-time}")
-    private Duration emailValidMinutes;
-
     private final EmailVerificationRepository emailVerificationRepository;
     private final AppUserRepository appUserRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    @Value("${resend-cooldown-second}")
+    private long resendCooldownSecond;
+    @Value("${security.jwt.email-verification-time}")
+    private Duration emailValidMinutes;
+    @Value("${app.verification-url:http://localhost:4200/verify-email}")
+    private String verificationUrlPrefix;
 
     public void handle(ResendVerificationCommand command) {
         var user = appUserRepository.findByEmail(command.email()).orElse(null);
@@ -37,27 +41,36 @@ public class ResendVerificationCommandHandler {
                 user.getId(),
                 now
         );
+        String tokenId = UUID.randomUUID().toString();
         var token = EmailVerificationToken.builder()
-                .id(UUID.randomUUID().toString())
+                .id(tokenId)
                 .user(user)
                 .expiresAt(now.plus(emailValidMinutes))
                 .createdAt(now)
                 .build();
         emailVerificationRepository.save(token);
-        // Will send email in future here.
+
+        String verificationUrl = verificationUrlPrefix + "?token=" + tokenId;
+        eventPublisher.publishEvent(
+                new UserRegisteredEvent(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getDisplayName(),
+                        verificationUrl
+                )
+        );
     }
 
-    public void validateResendCooldown(Integer userId){
+    public void validateResendCooldown(Integer userId) {
         var latestToken = emailVerificationRepository.findTopByUserIdOrderByCreatedAtDesc(userId);
-        if(latestToken.isEmpty()){
+        if (latestToken.isEmpty()) {
             return;
         }
         Instant now = Instant.now();
-        Instant nextAllowedAt = latestToken.get().getCreatedAt().plusSeconds(Resend_Cooldown_Second);
+        Instant nextAllowedAt = latestToken.get().getCreatedAt().plusSeconds(resendCooldownSecond);
 
-        if(now.isBefore(nextAllowedAt)){
+        if (now.isBefore(nextAllowedAt)) {
             throw new TooManyRequestsException("Please wait before requesting another email");
         }
-
     }
 }

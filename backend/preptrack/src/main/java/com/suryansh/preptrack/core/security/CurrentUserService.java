@@ -22,8 +22,9 @@ public class CurrentUserService {
     }
 
     public AppUser getUser() {
-        return getPrincipal().getUser();
+        return getPrincipal().user();
     }
+
     public Integer getUserId() {
         return getPrincipal().getId();
     }

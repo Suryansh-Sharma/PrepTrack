@@ -4,21 +4,24 @@ import com.suryansh.preptrack.core.exception.InvalidCredentialsException;
 import com.suryansh.preptrack.core.features.auth.command.refreshToken.RefreshTokenCommandHandler;
 import com.suryansh.preptrack.core.features.auth.command.refreshToken.RefreshTokenResponse;
 import com.suryansh.preptrack.core.features.auth.domain.AppUser;
-import com.suryansh.preptrack.core.features.auth.domain.repository.AppUserRepository;
 import com.suryansh.preptrack.core.features.auth.domain.AuthLoginAttempt;
+import com.suryansh.preptrack.core.features.auth.domain.repository.AppUserRepository;
 import com.suryansh.preptrack.core.features.auth.domain.repository.AuthLoginAttemptRepository;
+import com.suryansh.preptrack.core.features.auth.event.LoginSuccessEvent;
 import com.suryansh.preptrack.core.features.auth.security.UserPrincipal;
 import com.suryansh.preptrack.core.security.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
-
 @Service
+@Transactional
 public class LoginCommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(LoginCommandHandler.class);
     private final AppUserRepository appUserRepository;
@@ -26,15 +29,17 @@ public class LoginCommandHandler {
     private final JwtService jwtService;
     private final RefreshTokenCommandHandler refreshTokenCommandHandler;
     private final AuthLoginAttemptRepository authLoginAttemptRepository;
+    private final ApplicationEventPublisher eventPublisher;
     @Value("${security.jwt.expiration-time}")
     private long accessTokenExpiration;
 
-    public LoginCommandHandler(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenCommandHandler refreshTokenCommandHandler, AuthLoginAttemptRepository authLoginAttemptRepository) {
+    public LoginCommandHandler(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenCommandHandler refreshTokenCommandHandler, AuthLoginAttemptRepository authLoginAttemptRepository, ApplicationEventPublisher eventPublisher) {
         this.appUserRepository = appUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenCommandHandler = refreshTokenCommandHandler;
         this.authLoginAttemptRepository = authLoginAttemptRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public LoginResponse handle(LoginCommand command, String ip, String device) {
@@ -69,6 +74,23 @@ public class LoginCommandHandler {
         RefreshTokenResponse refreshTokenResponse = refreshTokenCommandHandler.create(user, device, ip);
 
         logger.info("User {} successfully logged in", userPrincipal.getId());
+
+        String timeZoneStr = user.getTimezone() != null && !user.getTimezone().trim().isEmpty() ? user.getTimezone().trim() : "UTC";
+        java.time.ZoneId zoneId;
+        try {
+            zoneId = java.time.ZoneId.of(timeZoneStr, java.time.ZoneId.SHORT_IDS);
+        } catch (Exception e) {
+            zoneId = java.time.ZoneId.of("UTC");
+        }
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' hh:mm a z");
+        String formattedTime = java.time.ZonedDateTime.now(zoneId).format(formatter);
+
+        eventPublisher.publishEvent(new LoginSuccessEvent(
+                user.getEmail(),
+                user.getDisplayName(),
+                device,
+                formattedTime
+        ));
 
         return new LoginResponse(userPrincipal.getId(), userPrincipal.getUsername(), userPrincipal.getDisplayName(), userPrincipal.getTimezone(), userPrincipal.getEmailVerifiedAt(), userPrincipal.getPlan(), userPrincipal.getStatus(), userPrincipal.getDeletedAt(), userPrincipal.getCreatedAt(), userPrincipal.getUpdatedAt(), new LoginResponse.AuthenticationInfo(accessToken, "Bearer", accessTokenExpiration, refreshTokenResponse.token(), refreshTokenResponse.expiresAt(), issuedAt, expiresAt));
     }
