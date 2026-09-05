@@ -1,0 +1,21 @@
+<aside class="app-sidebar">
+  <div class="sidebar-menu">
+    <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" routerLink="/flashcards" routerLinkActive="active">
+      <span>Flashcards</span>
+    </a>
+    <a class="nav-item" routerLink="/analytics" routerLinkActive="active">
+      <span>Analytics</span>
+    </a>
+  </div>
+  
+  <div class="sidebar-footer">
+    <div class="user-avatar">{{ getInitials(userInfo()?.displayName) }}</div>
+    <div class="user-info">
+      <span class="user-name" [title]="userInfo()?.displayName">{{ userInfo()?.displayName || 'Loading...' }}</span>
+      <span class="user-email" [title]="userInfo()?.email">{{ userInfo()?.email || 'Loading...' }}</span>
+    </div>
+  </div>
+</aside>
