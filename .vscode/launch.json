@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-PreptrackApplication<preptrack>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.suryansh.preptrack.PreptrackApplication",
+      "projectName": "preptrack",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
