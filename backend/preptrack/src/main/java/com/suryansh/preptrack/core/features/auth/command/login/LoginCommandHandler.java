@@ -92,7 +92,7 @@ public class LoginCommandHandler {
                 formattedTime
         ));
 
-        return new LoginResponse(userPrincipal.getId(), userPrincipal.getUsername(), userPrincipal.getDisplayName(), userPrincipal.getTimezone(), userPrincipal.getEmailVerifiedAt(), userPrincipal.getPlan(), userPrincipal.getStatus(), userPrincipal.getDeletedAt(), userPrincipal.getCreatedAt(), userPrincipal.getUpdatedAt(), new LoginResponse.AuthenticationInfo(accessToken, "Bearer", accessTokenExpiration, refreshTokenResponse.token(), refreshTokenResponse.expiresAt(), issuedAt, expiresAt));
+        return new LoginResponse(userPrincipal.getId(), userPrincipal.getUsername(), userPrincipal.getDisplayName(), userPrincipal.getTimezone(), userPrincipal.getEmailVerifiedAt(), userPrincipal.getPlan(),userPrincipal.getRole(), userPrincipal.getStatus(), userPrincipal.getDeletedAt(), userPrincipal.getCreatedAt(), userPrincipal.getUpdatedAt(), new LoginResponse.AuthenticationInfo(accessToken, "Bearer", accessTokenExpiration, refreshTokenResponse.token(), refreshTokenResponse.expiresAt(), issuedAt, expiresAt));
     }
 
     private void recordLoginAttempt(AppUser user, String email, boolean status, String ip, String device) {

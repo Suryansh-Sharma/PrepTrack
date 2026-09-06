@@ -33,6 +33,8 @@ public class AppUser {
     private Instant lockedUntil;
     private Instant createdAt;
     private Instant updatedAt;
+@Enumerated(EnumType.STRING)
+    private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshToken> refreshTokens = new ArrayList<>();
@@ -47,5 +49,6 @@ public class AppUser {
         PENDING_VERIFICATION, ACTIVE, LOCKED, DELETED
     }
 
-    public enum Plan {FREE}
+    public enum Plan {FREE,PRO,PREMIUM}
+    public enum Role {ADMIN,MANAGER,USER}
 }

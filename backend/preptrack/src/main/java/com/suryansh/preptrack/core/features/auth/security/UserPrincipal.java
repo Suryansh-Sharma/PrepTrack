@@ -2,6 +2,7 @@ package com.suryansh.preptrack.core.features.auth.security;
 
 import com.suryansh.preptrack.core.features.auth.domain.AppUser;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
@@ -34,6 +35,8 @@ public record UserPrincipal(AppUser user) implements UserDetails {
         return user.getPlan().toString();
     }
 
+    public String getRole() { return user.getRole().toString(); }
+
     public Instant getEmailVerifiedAt() {
         return user.getEmailVerifiedAt();
     }
@@ -52,8 +55,7 @@ public record UserPrincipal(AppUser user) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Add roles/permissions when AppUser supports them.
-        return List.of();
+        return List.of( new SimpleGrantedAuthority( "ROLE_" + user.getRole().name() ) );
     }
 
     @Override

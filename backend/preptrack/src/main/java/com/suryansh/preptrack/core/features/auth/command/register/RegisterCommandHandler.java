@@ -61,6 +61,7 @@ public class RegisterCommandHandler {
                 .status(AppUser.Status.PENDING_VERIFICATION)
                 .createdAt(now)
                 .updatedAt(now)
+                .role(AppUser.Role.USER)
                 .build();
 
         AppUser savedUser = appUserRepository.save(newUser);
